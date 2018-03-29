@@ -1,0 +1,62 @@
+#!/bin/bash
+#author:zhouli 2018.02.03
+export PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin
+PATH1="/home/test/user/zhouli/Build"
+HOME="/home/test"
+if [ $# -ne 1 ];then            #判断传参数量
+    echo "Usage: $0 filename.zip"
+    exit
+fi
+
+# 红色打印
+echo_red()
+{   
+    while [ "$1" != "" ];do
+        echo -e "\033[31;1m$1\033[0m"
+        shift
+    done
+}
+
+# 绿色打印
+echo_green()
+{
+    while [ "$1" != "" ];do
+        echo -e "\033[32;1m$1\033[0m"
+        shift
+    done
+}
+
+#解压通过rz 传上来的.zip包
+#我这里这是不用git，使用直接下载代码包到本机，然后rz命令传到本目录下，进行操作,仅限本机器使用
+unzip $1  >/dev/null
+
+FILE=$1
+FILEDIR=$(echo $FILE|sed 's/.zip//g')
+GROUP=`echo $FILE|awk -F "-" '{print $1}'`
+
+
+#打日志的请忽略
+echo_green  "FILE is $FILE"
+echo_green  "FILEDIR is $FILEDIR"
+echo_green  "GROUP is $GROUP"
+
+#构建过程
+cd $PATH1/$FILEDIR && sh build.sh sleep 10 && cd $PATH1/$FILEDIR/output 
+
+if [ ! -f "$PATH1/$FILEDIR/output/hk.tar.gz" ];then
+    echo".....机器人启动超级变换..O(∩_∩)O哈哈~.............."
+else
+    mv hk.tar.gz $GROUP.tar.gz 
+fi
+
+mv * $HOME && cd $HOME && tar -xzvf  $GROUP.tar.gz >/dev/null
+   
+#构建完毕
+echo_red "build is finished,please test!!!" 
+
+cd $PATH1
+cp MisUserBase.php /home/test/app/kdmis/library/kdmis/action/
+#清理文件
+cd $PATH1 && rm -rf $FILEDIR 
+cd $HOME && rm  $GROUP.tar.gz
+
