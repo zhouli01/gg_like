@@ -5,8 +5,8 @@
 export PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin
 PATH1="/home/test/user/zhouli/Build"
 HOME="/home/test"
-if [ $# -ne 2];then            #判断传参数量
-    echo "Usage: $0 master branch"
+if [ $# -ne 3 ];then            #判断传参数量
+    echo "Usage: $0 fe/scan master branch"
     exit
 fi
 
@@ -27,48 +27,68 @@ echo_green()
         shift
     done
 }
-#$1的替换,太low了，你忽略
-tmp=`echo $1`
-echo $tmp>tmp_1
-sed -i  's/^/\//'  tmp_1 
-sed -i 's/^/git@git.kuaiduizuoye.com:scan/' tmp_1
-sed -i 's/$/\.git/' tmp_1
+
+# 粉色打印
+echo_purple()
+{
+        echo -e "\033[35;1m$1\033[0m"
+}
+
+
+#$1的替换
+if [ "$1" == fe ];then
+    echo $2|sed -e 's/^/git@git.kuaiduizuoye.com:fe\//;s/$/\.git/'>tmp_1
+else
+    echo $2|sed -e 's/^/git@git.kuaiduizuoye.com:scan\//;s/$/\.git/'>tmp_1
+fi
+
+if [ "$2" == * ];then
+   echo_red "Please check  your  input" 
+   exit 1 
+else
+  echo_purple  "Please  check  and check done"
+fi
 
 #$1 参数替换为master_git  ;$2参数就是分支
 master_git=`cat tmp_1`
-master_branch=$2
+master_branch=$3
 echo_red "模块master_git地址为：$master_git"
 echo_red "分支branch为：$master_branch"
-git clone  $master_git $master_branch
+git clone -b $master_branch $master_git
+
+echo_green "git clone  完毕啦！！！" 
 
 #打日志的请忽略
-echo_green  "master_git is $master_git"
-echo_green  "master_branch is $master_branch"
+echo_purple  "master_git is $master_git"
+echo_purple  "master_branch is $master_branch"
 
 
 
 #构建过程
-cd $PATH1/$master_branch && sh build.sh sleep 10 && cd $PATH1/$master_branch/output 
+cd $PATH1/$2 && sh build.sh 
+cd $PATH1/$2/output 
 
-if [ ! -f "$PATH1/$master_branch/output/hk.tar.gz" ];then
+if [ ! -f "$PATH1/$2/output/hk.tar.gz" ];then
     echo_green ".......七七八八的bug.........."
 else
     echo_green ".....机器人启动超级变换..O(∩_∩)O哈哈~.............."
-    mv hk.tar.gz $1.tar.gz 
+    mv hk.tar.gz $2.tar.gz 
 fi
 
-mv * $HOME && cd $HOME && tar -xzvf  $1.tar.gz >/dev/null
-   
+if [ -d "$PATH1/$2/output" ];then
+    mv *.tar.gz $HOME
+cd $HOME && tar -xzf  $2.tar.gz 
 #构建完毕
 echo_green "build is finished,please test!!!" 
+fi
 
 
 #这里是为了加测试环境的mis后台登陆权限的
 #目前暂时没区分fe的kdmis和scan的kdmis 所以这里不做区分,但是涉及到MisUserBase接口的需要注意下
-cd $PATH1
-cp MisUserBase.php /home/test/app/kdmis/library/kdmis/action/
+#cd $PATH1
+#cp MisUserBase.php /home/test/app/kdmis/library/kdmis/action/
 
 
 #清理文件
-cd $PATH1 && rm -rf $master_branch 
-cd $HOME  && rm -rf $1.tar.gz 
+cd $PATH1 && rm -rf $2 tmp_1 
+cd $HOME  && rm -rf $2.tar.gz 
