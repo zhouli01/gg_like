@@ -5,6 +5,7 @@
 export PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin
 PATH1="/home/test/user/zhouli/Build"
 HOME="/home/test"
+
 if [ $# -ne 3 ];then            #判断传参数量
     echo "Usage: $0 fe/scan master branch"
     exit
@@ -33,16 +34,21 @@ echo_purple()
 {
         echo -e "\033[35;1m$1\033[0m"
 }
+Record=`cat .mm/recording` 
+echo_red "正在占用的模块分支:$Record"
 
+#打印空格
+value=                                                                                                              
+echo $value
 
 #$1的替换
 if [ "$1" == fe ];then
     echo $2|sed -e 's/^/git@git.kuaiduizuoye.com:fe\//;s/$/\.git/'>tmp_1
-else
+elif [ "$1" == scan ];then
     echo $2|sed -e 's/^/git@git.kuaiduizuoye.com:scan\//;s/$/\.git/'>tmp_1
 fi
 
-if [ "$2" == * ];then
+if [ "$2" == "*" ];then
    echo_red "Please check  your  input" 
    exit 1 
 else
@@ -55,14 +61,10 @@ master_branch=$3
 echo_red "模块master_git地址为：$master_git"
 echo_red "分支branch为：$master_branch"
 git clone -b $master_branch $master_git
-
 echo_green "git clone  完毕啦！！！" 
-
 #打日志的请忽略
 echo_purple  "master_git is $master_git"
 echo_purple  "master_branch is $master_branch"
-
-
 
 #构建过程
 cd $PATH1/$2 && sh build.sh 
@@ -82,12 +84,10 @@ cd $HOME && tar -xzf  $2.tar.gz
 echo_green "build is finished,please test!!!" 
 fi
 
-
 #这里是为了加测试环境的mis后台登陆权限的
 #目前暂时没区分fe的kdmis和scan的kdmis 所以这里不做区分,但是涉及到MisUserBase接口的需要注意下
-#cd $PATH1
-#cp MisUserBase.php /home/test/app/kdmis/library/kdmis/action/
-
+cd $PATH1
+cp MisUserBase.php /home/test/app/kdmis/library/kdmis/action/
 
 #清理文件
 cd $PATH1 && rm -rf $2 tmp_1 
